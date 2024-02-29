@@ -8,7 +8,7 @@ class Course(models.Model):
     name = models.CharField(max_length=150, unique=True, verbose_name='Название')
     desc = models.TextField(verbose_name='Описание', **NULLABLE)
     preview = models.ImageField(verbose_name='Превью', upload_to='course/', **NULLABLE)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE, verbose_name='Владелец')
 
     def __str__(self):
         return f'{self.name} {self.desc}'
@@ -19,7 +19,7 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
-    name = models.CharField(max_length=150, unique=True, verbose_name='Название')
+    name = models.CharField(max_length=150, verbose_name='Название')
     desc = models.TextField(verbose_name='Описание', **NULLABLE)
     preview = models.ImageField(verbose_name='Превью', upload_to='course/', **NULLABLE)
     video_link = models.URLField(verbose_name='Ссылка', **NULLABLE)
