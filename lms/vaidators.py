@@ -6,6 +6,6 @@ class URLValidator:
         self.field = field
 
     def __call__(self, value):
-        tmp_val = dict(value).get(self.field)
+        tmp_val = str(dict(value).get(self.field))
         if not tmp_val.startswith('https://www.youtube.com/'):
             raise ValidationError('Нельзя добавлять сторонние ссылки, кроме youtube')
