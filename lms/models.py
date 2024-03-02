@@ -24,6 +24,7 @@ class Lesson(models.Model):
     preview = models.ImageField(verbose_name='Превью', upload_to='course/', **NULLABLE)
     video_link = models.URLField(verbose_name='Ссылка', **NULLABLE)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE, verbose_name='Владелец')
 
     def __str__(self):
         return f'{self.name} {self.desc}'
