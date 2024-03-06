@@ -1,14 +1,22 @@
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
-from lms.models import Course, Lesson
+from rest_framework.views import APIView
+from rest_framework.reverse import reverse
+from lms.models import Course, Lesson, Subscriptions
+from lms.paginators import CoursePagination, LessonPagination
 from lms.permissions import IsStaff, IsOwner
-from lms.serializers import CourseSerializer, LessonSerializer
+from lms.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
+from django.http import Http404, HttpResponseRedirect
+from rest_framework.response import Response
+
+from users.serializers import UserSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     queryset = Course.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = CoursePagination
 
     def perform_create(self, serializer):
         new_course = serializer.save()
@@ -17,7 +25,7 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         if self.action == 'create':
-            self.permission_classes = [IsAuthenticated, ~IsStaff]
+            self.permission_classes = [IsAuthenticated]
         elif self.action == 'retrieve':
             self.permission_classes = [IsOwner | IsStaff, IsAuthenticated]
         elif self.action == 'update':
@@ -25,6 +33,56 @@ class CourseViewSet(viewsets.ModelViewSet):
         elif self.action == 'destroy':
             self.permission_classes = [IsAuthenticated, IsOwner]
         return [permission() for permission in self.permission_classes]
+
+
+class SubscriptionView(APIView):
+    queryset = Course.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [IsOwner, IsAuthenticated, IsStaff]
+
+    def get_object(self, *args, **kwargs):
+        if self.request.user.is_authenticated():
+            try:
+                course = Course.objects.get(user__username=self.request.user)
+            except:
+                course = None
+
+            if course == None:
+                HttpResponseRedirect(reverse("course"))
+
+        else:
+            course_id = self.request.session.get("course_id")
+            if course_id == None:
+                HttpResponseRedirect(reverse("course"))
+
+            course = Course.objects.get(id=course_id)
+
+        return course
+
+    def post(self, request, *args, **kwargs):
+        user = self.request.user
+        user_data = UserSerializer(user).data
+
+        course_id = request.data.get('course_id')
+
+        if course_id is None:
+            return Response({"message": "Отсутствует идентификатор курса в запросе"}, status=400)
+
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            raise Http404("Курс с таким идентификатором не найден")
+
+        subs_item = Subscriptions.objects.filter(user=user, course=course)
+
+        if subs_item.exists():
+            subs_item.delete()
+            message = 'Подписка на курс удалена'
+        else:
+            Subscriptions.objects.create(user=user, course=course)
+            message = 'Подписка на курс добавлена'
+
+        return Response({"message": message, "user": user_data})
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -41,6 +99,7 @@ class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = LessonPagination
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):

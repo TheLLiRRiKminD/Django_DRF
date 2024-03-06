@@ -1,12 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
+from django.utils.translation import gettext_lazy as _
 from lms.models import Course, Lesson
 
 NULLABLE = {'blank': True, 'null': True}
 
 
-# Create your models here.
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, verbose_name='e-mail')
