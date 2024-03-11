@@ -2,14 +2,11 @@ from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.reverse import reverse
 from lms.models import Course, Lesson, Subscriptions
 from lms.paginators import CoursePagination, LessonPagination
 from lms.permissions import IsStaff, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
-from django.http import Http404, HttpResponseRedirect
-
-from users.serializers import UserSerializer
+from django.http import Http404
 
 
 class CourseViewSet(viewsets.ModelViewSet):
