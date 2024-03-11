@@ -1,5 +1,6 @@
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.reverse import reverse
 from lms.models import Course, Lesson, Subscriptions
@@ -7,7 +8,6 @@ from lms.paginators import CoursePagination, LessonPagination
 from lms.permissions import IsStaff, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from django.http import Http404, HttpResponseRedirect
-from rest_framework.response import Response
 
 from users.serializers import UserSerializer
 
@@ -38,31 +38,10 @@ class CourseViewSet(viewsets.ModelViewSet):
 class SubscriptionView(APIView):
     queryset = Course.objects.all()
     serializer_class = SubscriptionSerializer
-    permission_classes = [IsOwner, IsAuthenticated, IsStaff]
-
-    def get_object(self, *args, **kwargs):
-        if self.request.user.is_authenticated():
-            try:
-                course = Course.objects.get(user__username=self.request.user)
-            except:
-                course = None
-
-            if course == None:
-                HttpResponseRedirect(reverse("course"))
-
-        else:
-            course_id = self.request.session.get("course_id")
-            if course_id == None:
-                HttpResponseRedirect(reverse("course"))
-
-            course = Course.objects.get(id=course_id)
-
-        return course
+    permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
         user = self.request.user
-        user_data = UserSerializer(user).data
-
         course_id = request.data.get('course_id')
 
         if course_id is None:
@@ -82,7 +61,7 @@ class SubscriptionView(APIView):
             Subscriptions.objects.create(user=user, course=course)
             message = 'Подписка на курс добавлена'
 
-        return Response({"message": message, "user": user_data})
+        return Response({"message": message})
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -111,9 +90,9 @@ class LessonRetrieveAPIView(generics.RetrieveAPIView):
 class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
-    permission_classes = [IsOwner | IsStaff, IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated]

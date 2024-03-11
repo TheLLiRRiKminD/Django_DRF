@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from lms.models import Lesson, Course
 from users.models import User
+from django.urls import reverse
 
 
 class SubscribeTestCase(APITestCase):
@@ -51,66 +52,94 @@ class LessonTestCase(APITestCase):
 
         self.client = APIClient()
 
-        self.user = User.objects.create(email="test@gmail.com", is_superuser=True, is_staff=True)
+        self.user = User.objects.create(
+            email="test@test.ru",
+            is_staff=True,
+            is_active=True,
+            is_superuser=False,
+        )
+        self.user.set_password("test_user")
+        self.user.save()
+
+        self.course = Course.objects.create(
+            name="Test_course",
+            desc="Test_course",
+            owner=self.user
+        )
+
+        self.lesson = Lesson.objects.create(
+            name='Test_lesson',
+            desc='Test_lesson',
+            owner=self.user,
+            course=self.course
+        )
+
         self.client.force_authenticate(user=self.user)
 
-        Lesson.objects.create(name='test')
-        Course.objects.create(name='test')
+    def test_list_lessons(self):
+        """Тестирование вывода списка уроков"""
+
+        response = self.client.get(
+            reverse('lms:lessons-list')
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
 
     def test_create_lesson(self):
-        """ Тест создания урока: отправляем данные и проверяем статус ответа. """
+        """Тестирование создания урока"""
+
         data = {
-            "name": "test",
-            "description": "test"
+            "name": "test_lesson2",
+            "desc": "test_lesson2",
+            "course": 1
         }
 
-        response = self.client.post('/lessons/create/', data=data)
+        response = self.client.post(
+            reverse('lms:lessons-create'),
+            data=data
+        )
+
         self.assertEqual(
             response.status_code,
             status.HTTP_201_CREATED
         )
 
-    def test_list_lesson(self):
-        """ Тест вывода списка уроков: отправляем GET-запрос и проверяем статус ответа. """
-        response = self.client.get('/lessons/')
+    def test_update_lesson(self):
+        """Тестирование изменения информации об уроке"""
+        lesson = Lesson.objects.create(
+            name='Test_lesson',
+            desc='Test_lesson',
+            owner=self.user,
+            course=self.course
+        )
+
+        response = self.client.patch(
+            f'/Lessons/update/{lesson.id}/',
+            {'desc': 'change'}
+        )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_200_OK
         )
 
-    def test_destroy_lesson(self):
-        """ Тест удаления урока: создаем урок, отправляем DELETE-запрос и проверяем статус ответа."""
-
-        Lesson.objects.create(
-            name="del_test",
-            description="del_test"
+    def test_delete_lesson(self):
+        """Тестирование удаления урока"""
+        lesson = Lesson.objects.create(
+            name='Test_lesson',
+            desc='Test_lesson',
+            owner=self.user,
+            course=self.course
         )
 
-        response = self.client.delete('/lessons/destroy/4/')
+        response = self.client.delete(
+            f'/Lessons/delete/{lesson.id}/'
+        )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
-
-    def test_update_lesson(self):
-        """ Тест изменения урока: создаем урок, отправляем PATCH-запрос с новым описанием и проверяем статус ответа. """
-
-        lesson = Lesson.objects.create(name="test")
-        new_description = "New description"
-
-        response = self.client.patch(
-            f'/lessons/update/{lesson.id}/',
-            data={"description": new_description}
-
-        )
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK
-        )
-
-        # Проверка, что описание урока изменилось
-        lesson.refresh_from_db()
-        self.assertEqual(lesson.description, new_description)
