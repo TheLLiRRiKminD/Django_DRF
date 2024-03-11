@@ -113,13 +113,16 @@ class LessonTestCase(APITestCase):
             name='Test_lesson',
             desc='Test_lesson',
             owner=self.user,
-            course=self.course
+            course=self.course,
+            # video_link='https://www.youtube.com/'
         )
 
         response = self.client.patch(
             f'/Lessons/update/{lesson.id}/',
             {'desc': 'change'}
         )
+
+        print(response.data)
 
         self.assertEqual(
             response.status_code,
