@@ -18,15 +18,13 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class PaymentsSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
-    price = CourseSerializer(source='paid_course.price', read_only=True)
-    print(Course.price)
 
     class Meta:
         model = Payments
         fields = '__all__'
 
-    def get_url(self):
-        return stripe_session_create(self.price)
+    def get_url(self, obj):
+        return stripe_session_create(obj.paid_course.price)
 
 
 class UserSerializer(serializers.ModelSerializer):

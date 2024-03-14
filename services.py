@@ -24,6 +24,7 @@ def stripe_price_create(product, price):
         recurring={"interval": "month"},
         product_data={"name": f"{product}"},
     )
+    # print(price_of_course['id'])
     return price_of_course
 
 
@@ -31,7 +32,8 @@ def stripe_session_create(price):
     session = stripe.checkout.Session.create(
         success_url="https://example.com/success",
         line_items=[{"price": f"{price}", "quantity": 1}],
-        mode="payment",
+        mode="subscription",
     )
+    # print(session['url'])
     return session['url']
 # stripe_price_create('Python', 500)
