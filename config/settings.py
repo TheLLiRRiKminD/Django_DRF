@@ -136,9 +136,11 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+    'DEFAULT_PAGINATION_CLASS': [
+        'rest_framework.pagination.PageNumberPagination',
+    ],
 }
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8000',
 ]
-

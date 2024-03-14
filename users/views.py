@@ -5,6 +5,7 @@ from users.serializers import PaymentsSerializer, UserSerializer, MyTokenObtainP
 from rest_framework.filters import OrderingFilter
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.permissions import IsAuthenticated
+import stripe
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
@@ -19,6 +20,7 @@ class UserListAPIView(generics.ListAPIView):
     serializer_class = UserSerializer
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
@@ -45,6 +47,7 @@ class PaymentsListAPIView(generics.ListAPIView):
     filterset_fields = ('paid_course', 'paid_lesson')
     ordering_fields = ('date_of_payment',)
     permission_classes = [IsAuthenticated]
+    pagination_class = None
 
 
 class PaymentsCreateAPIView(generics.CreateAPIView):

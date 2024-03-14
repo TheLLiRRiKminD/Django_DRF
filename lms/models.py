@@ -1,5 +1,8 @@
+import uuid
+
 from django.db import models
 from config import settings
+from services import stripe_product_create, stripe_price_create
 
 NULLABLE = {'blank': True, 'null': True}
 
@@ -9,6 +12,8 @@ class Course(models.Model):
     desc = models.TextField(verbose_name='Описание', **NULLABLE)
     preview = models.ImageField(verbose_name='Превью', upload_to='course/', **NULLABLE)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, **NULLABLE, verbose_name='Владелец')
+    stripe_id = models.CharField(default=stripe_product_create(name)['id'])
+    price = models.CharField(default=stripe_price_create(name, 500)['id'])
 
     def __str__(self):
         return f'{self.name} {self.desc}'

@@ -1,4 +1,8 @@
 from rest_framework import serializers
+
+from lms.models import Course
+from lms.serializers import CourseSerializer
+from services import stripe_session_create
 from users.models import Payments, User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
@@ -13,9 +17,16 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 
 class PaymentsSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+    price = CourseSerializer(source='paid_course.price', read_only=True)
+    print(Course.price)
+
     class Meta:
         model = Payments
         fields = '__all__'
+
+    def get_url(self):
+        return stripe_session_create(self.price)
 
 
 class UserSerializer(serializers.ModelSerializer):
