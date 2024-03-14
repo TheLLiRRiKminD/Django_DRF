@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
-from lms.models import Lesson, Course
+from lms.models import Lesson, Course, Subscriptions
 from users.models import User
 from django.urls import reverse
 
@@ -11,14 +11,18 @@ class SubscribeTestCase(APITestCase):
         self.client = APIClient()
         self.user = User.objects.create(email="test@gmail.com", is_superuser=True, password="2648")
         self.client.force_authenticate(user=self.user)
-        Course.objects.create(name='test')
+        self.course = Course.objects.create(name='test')
+        self.subscription = Subscriptions.objects.create(
+            user=self.user,
+            course=self.course
+        )
 
     def test_retrieve_subscribe(self):
         """ Тестирование функционала работы подписки на обновления курса"""
 
         data = {
-            "course_id": 1,
-            "user": 1
+            "course_id": self.course.pk,
+            "user": self.user.pk
         }
 
         response = self.client.post(
