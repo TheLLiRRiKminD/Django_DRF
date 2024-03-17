@@ -10,18 +10,6 @@ class LessonSerializer(serializers.ModelSerializer):
         validators = [URLValidator(field='video_link')]
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    lessons = LessonSerializer(source='lesson_set.all', many=True, read_only=True)
-    lessons_count = serializers.SerializerMethodField()
-
-    def get_lessons_count(self, obj):
-        return obj.lesson_set.count()
-
-    class Meta:
-        model = Course
-        fields = '__all__'
-
-
 class SubscriptionSerializer(serializers.ModelSerializer):
     lessons = LessonSerializer(source='lesson_set', many=True, read_only=True)
     is_subscribe = serializers.SerializerMethodField()
@@ -38,4 +26,21 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscriptions
-        fields = ["course", "user"]
+        fields = '__all__'
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(source='lesson_set.all', many=True, read_only=True)
+    lessons_count = serializers.SerializerMethodField()
+    is_subscribed = serializers.SerializerMethodField()
+
+    def get_is_subscribed(self, course):
+        user = self.context['request'].user
+        return Subscriptions.objects.filter(user=user, course=course).exists()
+
+    def get_lessons_count(self, obj):
+        return obj.lesson_set.count()
+
+    class Meta:
+        model = Course
+        fields = '__all__'

@@ -1,7 +1,4 @@
 from rest_framework import serializers
-
-from lms.models import Course
-from lms.serializers import CourseSerializer
 from services import stripe_session_create
 from users.models import Payments, User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer

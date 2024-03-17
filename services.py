@@ -20,7 +20,7 @@ def stripe_product_create(course):
 def stripe_price_create(product, price):
     price_of_course = stripe.Price.create(
         currency="rub",
-        unit_amount=price,
+        unit_amount=price*100,
         recurring={"interval": "month"},
         product_data={"name": f"{product}"},
     )
