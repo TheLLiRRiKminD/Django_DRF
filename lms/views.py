@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import viewsets, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from lms.paginators import CoursePagination, LessonPagination
 from lms.permissions import IsStaff, IsOwner
 from lms.serializers import CourseSerializer, LessonSerializer, SubscriptionSerializer
 from django.http import Http404
+from .tasks import update_course_notification
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -19,6 +21,13 @@ class CourseViewSet(viewsets.ModelViewSet):
         new_course = serializer.save()
         new_course.owner = self.request.user
         new_course.save()
+
+    def perform_update(self, serializer):
+        course = serializer.save()
+        course_id = course.id
+        course.last_update = timezone.now()
+
+        update_course_notification.delay(course_id)
 
     def get_permissions(self):
         if self.action == 'create':
