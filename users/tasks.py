@@ -1,12 +1,11 @@
-from celery import shared_task
-from django.utils import timezone
+from datetime import timedelta
 
-from users.models import User
+from celery import shared_task
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 
 @shared_task
-def check_user_activity(user_id):
-    user = User.objects.get(id=user_id)
-    if user.last_login < timezone.now() - timezone.timedelta(days=30):
-        user.is_active = False
-        user.save()
+def check_user_activity():
+    user = get_user_model().objects.filter(is_active=True, last_login__lte=timezone.now() - timedelta(days=30))
+    user.update(is_active=False)

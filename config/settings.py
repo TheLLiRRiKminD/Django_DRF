@@ -1,6 +1,9 @@
 import os
 from pathlib import Path
+
+from celery.schedules import crontab
 from dotenv import load_dotenv
+from datetime import timedelta
 
 load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -172,3 +175,10 @@ EMAIL_PORT = 465
 EMAIL_ADMIN = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+CELERY_BEAT_SCHEDULE = {
+    'check_user_activity': {
+        'task': 'users.tasks.check_user_activity',
+        'schedule': crontab(minute='*'),
+    },
+}
