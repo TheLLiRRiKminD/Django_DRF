@@ -82,6 +82,8 @@ DATABASES = {
         'NAME': 'django_drf',
         'USER': 'postgres',
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': 5432
 
     }
 }
