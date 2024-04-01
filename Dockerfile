@@ -1,5 +1,7 @@
 FROM python:3 as builder
 
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /code
 
 RUN pip install poetry

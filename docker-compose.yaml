@@ -2,23 +2,33 @@ version: '3'
 
 services:
   db:
+    restart: always
     image: postgres
     env_file:
       - .env
     environment:
-      - POSTGRES_DB=django_drf
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=2648
-    volumes:
-      - pg_data:/var/lib/postgresql/data
+      - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
       - '5432:5432'
+    volumes:
+      - pg_data:/var/lib/postgresql/data/pgdata
+#    healthcheck:
+#      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+#      interval: 5s
+#      timeout: 5s
+#      retries: 5
 
   app:
     build: .
-    command: python manage.py runserver 0.0.0.0:0000
+    tty: true
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
-      - '8001:8000'
+      - '8000:8000'
+    volumes:
+      - .:/code
+    depends_on:
+      - db
+
 
 volumes:
   pg_data:
